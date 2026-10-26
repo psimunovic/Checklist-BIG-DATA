@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checklist Interactivo: Pipeline de Big Data</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; }
+            .print-card { border: 1px solid #e2e8f0 !important; box-shadow: none !important; }
+        }
+    </style>
+</head>
+<body class="h-full text-slate-800 flex flex-col min-h-screen">
+
+    <!-- Header / Navbar -->
+    <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-50 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-brand-600 rounded-lg text-white">
+                    <i data-lucide="database" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">Pipeline de Big Data</h1>
+                    <p class="text-xs text-slate-400">Guía de Proyecto & Checklist de Progreso</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <button id="btn-print" onclick="window.print()" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 transition">
+                    <i data-lucide="printer" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Exportar / Imprimir</span>
+                </button>
+                <button id="btn-reset" onclick="resetProgress()" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/50 transition">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Reiniciar</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- Progress Overview Banner -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 mb-8 print-card">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div class="space-y-1">
+                    <div class="inline-flex items-center space-x-2 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-50 text-brand-700 border border-brand-100">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                        <span>Progreso del Proyecto</span>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-900">Estado del Pipeline</h2>
+                    <p class="text-sm text-slate-500">Completa cada actividad marcando la casilla correspondiente para avanzar en la arquitectura.</p>
+                </div>
+
+                <div class="flex items-center space-x-6 min-w-[260px] justify-between md:justify-end">
+                    <div class="text-right">
+                        <span id="completed-count" class="text-3xl font-extrabold text-slate-900">0</span>
+                        <span id="total-count" class="text-lg font-semibold text-slate-400">/ 18</span>
+                        <p class="text-xs text-slate-500 font-medium">Tareas Completadas</p>
+                    </div>
+                    <div class="relative flex items-center justify-center">
+                        <div class="w-20 h-20 rounded-full border-4 border-slate-100 flex items-center justify-center bg-slate-50">
+                            <span id="progress-percent" class="text-lg font-bold text-brand-600">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Progress Bar -->
+            <div class="mt-6">
+                <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                    <div id="main-progress-bar" class="bg-gradient-to-r from-brand-500 to-emerald-500 h-3 rounded-full transition-all duration-500 w-0"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters & Controls (No Print) -->
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6 no-print">
+            <div class="flex items-center space-x-1 bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
+                <button onclick="setFilter('all')" id="filter-all" class="filter-btn active px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-brand-600 text-white">Todas</button>
+                <button onclick="setFilter('pending')" id="filter-pending" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">Pendientes</button>
+                <button onclick="setFilter('completed')" id="filter-completed" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">Completadas</button>
+            </div>
+
+            <div class="text-xs text-slate-500 italic">
+                <i data-lucide="save" class="w-3.5 h-3.5 inline mr-1"></i>Guardado automático activado
+            </div>
+        </div>
+
+        <!-- Phases Container -->
+        <div id="phases-container" class="space-y-6">
+            <!-- Rendered by JS -->
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-auto py-6 text-center text-xs text-slate-500 no-print">
+        <p>Guía de Proyecto Práctico de Big Data Pipeline — Diseñado para Plataformas Educativas y Entornos Open Source</p>
+    </footer>
+
+    <!-- Custom Modal for Notifications / Confirmations -->
+    <div id="modal-container" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
+        <div class="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl border border-slate-100 transform scale-95 transition-transform duration-200" id="modal-box">
+            <div class="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mb-4">
+                <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+            </div>
+            <h3 class="font-bold text-slate-900 text-base mb-1">¿Reiniciar checklist?</h3>
+            <p class="text-slate-500 text-xs mb-6">Esta acción borrará todo el progreso guardado localmente en este navegador.</p>
+            <div class="flex justify-end space-x-3">
+                <button onclick="closeModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition">Cancelar</button>
+                <button onclick="confirmReset()" class="px-4 py-2 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition">Sí, reiniciar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        // Data Structure for the Checklist
+        const phasesData = [
+            {
+                id: 'fase-1',
+                title: 'Fase 1: Definición del Caso de Uso y Entorno',
+                subtitle: 'Configuración de herramientas y marco de trabajo',
+                badge: 'Setup Inicial',
+                color: 'sky',
+                items: [
+                    {
+                        id: 'task-1-1',
+                        title: 'Repositorio GitHub del Proyecto',
+                        framework: 'Git & Versionamiento',
+                        description: 'Crear repositorio público estructurado con carpetas: /src, /data, /notebooks y un archivo README.md inicial.'
+                    },
+                    {
+                        id: 'task-1-2',
+                        title: 'Selección de la Fuente de Datos',
+                        framework: 'Data Sources (APIs / Open Data)',
+                        description: 'Elegir API pública activa (ej. OpenWeather, CoinGecko, Datos Abiertos) o dataset masivo de Kaggle Datasets.'
+                    },
+                    {
+                        id: 'task-1-3',
+                        title: 'Diagrama de Arquitectura de Datos',
+                        framework: 'Data Architecture',
+                        description: 'Elaborar diagrama conceptual del pipeline desde la ingesta hasta el dashboard (Excalidraw, Mermaid.js o Figma).'
+                    }
+                ]
+            },
+            {
+                id: 'fase-2',
+                title: 'Fase 2: Ingesta de Datos y Capa Bronze (Data Lake)',
+                subtitle: 'Medallion Architecture - Raw Layer',
+                badge: 'Data Lake Raw',
+                color: 'amber',
+                items: [
+                    {
+                        id: 'task-2-1',
+                        title: 'Script de Ingesta Automatizada',
+                        framework: 'Python Requests / API Ingestion',
+                        description: 'Escribir script Python (ingest.py) que ejecute peticiones a la API o descargue fuentes por lotes.'
+                    },
+                    {
+                        id: 'task-2-2',
+                        title: 'Almacenamiento en Capa Bronze (Raw)',
+                        framework: 'Bronze Storage (JSON/CSV)',
+                        description: 'Guardar datos crudos en su formato original sin modificaciones dentro del Data Lake (local o DuckDB).'
+                    },
+                    {
+                        id: 'task-2-3',
+                        title: 'Validación de Esquema Inicial',
+                        framework: 'Data Quality / Schema Validation',
+                        description: 'Implementar verificación básica de disponibilidad de fuente y formato de datos recibidos.'
+                    }
+                ]
+            },
+            {
+                id: 'fase-3',
+                title: 'Fase 3: Procesamiento, Limpieza y Capa Silver',
+                subtitle: 'Data Processing & Engine Batch',
+                badge: 'Transformation',
+                color: 'indigo',
+                items: [
+                    {
+                        id: 'task-3-1',
+                        title: 'Entorno de Cálculo Distribuido / Batch',
+                        framework: 'Google Colab / PySpark / DuckDB',
+                        description: 'Configurar notebook ejecutable con PySpark o DuckDB para manipulación eficiente de datos.'
+                    },
+                    {
+                        id: 'task-3-2',
+                        title: 'Limpieza, Deduplicación y Normalización',
+                        framework: 'Data Cleansing & Transformation',
+                        description: 'Eliminar registros duplicados, tratar valores nulos, realizar casting de tipos de datos y estandarizar columnas.'
+                    },
+                    {
+                        id: 'task-3-3',
+                        title: 'Exportación a Formato Parquet (Silver)',
+                        framework: 'Apache Parquet / Medallion Silver',
+                        description: 'Guardar el dataset limpio en formato columnar optimizado Apache Parquet con compresión Snappy.'
+                    }
+                ]
+            },
+            {
+                id: 'fase-4',
+                title: 'Fase 4: Agregación, Modelado y Capa Gold',
+                subtitle: 'Data Warehousing & Dimensional Modeling',
+                badge: 'Analytics DWH',
+                color: 'emerald',
+                items: [
+                    {
+                        id: 'task-4-1',
+                        title: 'Modelado y Métricas de Negocio',
+                        framework: 'Dimensional Modeling / Analytics',
+                        description: 'Generar agregaciones analíticas clave (promedios, KPIs temporales, agrupaciones de interés).'
+                    },
+                    {
+                        id: 'task-4-2',
+                        title: 'Carga en Data Warehouse',
+                        framework: 'DuckDB / BigQuery Sandbox',
+                        description: 'Insertar las tablas agregadas finales (Capa Gold) en una base de datos analítica sin costo (DuckDB o BigQuery Sandbox).'
+                    },
+                    {
+                        id: 'task-4-3',
+                        title: 'Consultas de Verificación SQL',
+                        framework: 'Data Validation / SQL',
+                        description: 'Ejecutar consultas de prueba para asegurar que los datos agregados respondan las preguntas de negocio.'
+                    }
+                ]
+            },
+            {
+                id: 'fase-5',
+                title: 'Fase 5: Orquestación y Automatización',
+                subtitle: 'DataOps & Automated Workflows',
+                badge: 'Orchestration',
+                color: 'purple',
+                items: [
+                    {
+                        id: 'task-5-1',
+                        title: 'Flujo de Trabajo en GitHub Actions',
+                        framework: 'GitHub Actions / CI-CD',
+                        description: 'Crear archivo workflow (.github/workflows/pipeline.yml) para ejecutar el script de ingesta y transformación.'
+                    },
+                    {
+                        id: 'task-5-2',
+                        title: 'Programación Automática (Cron Job)',
+                        framework: 'CRON Schedule',
+                        description: 'Programar la ejecución periódica automatizada del pipeline en los servidores gratuitos de GitHub.'
+                    },
+                    {
+                        id: 'task-5-3',
+                        title: 'Gestión de Logs y Alertas',
+                        framework: 'Data Monitoring',
+                        description: 'Asegurar que los logs de ejecución registren correctamente el estado de cada etapa (Exitoso/Fallido).'
+                    }
+                ]
+            },
+            {
+                id: 'fase-6',
+                title: 'Fase 6: Capa de Consumo y Visualización',
+                subtitle: 'Business Intelligence & Deploy',
+                badge: 'BI & Deploy',
+                color: 'rose',
+                items: [
+                    {
+                        id: 'task-6-1',
+                        title: 'Desarrollo del Dashboard Interactivo',
+                        framework: 'Streamlit / Python BI',
+                        description: 'Construir aplicación web interactiva en Streamlit conectada a la Capa Gold para mostrar las métricas.'
+                    },
+                    {
+                        id: 'task-6-2',
+                        title: 'Despliegue Público Gratuito',
+                        framework: 'Streamlit Community Cloud',
+                        description: 'Publicar la aplicación web en Streamlit Cloud y verificar que sea accesible desde cualquier navegador.'
+                    },
+                    {
+                        id: 'task-6-3',
+                        title: 'Documentación Final e Informe',
+                        framework: 'Data Storytelling & Docs',
+                        description: 'Completar el README.md del repositorio con el enlace al dashboard, captura de arquitectura y pasos de ejecución.'
+                    }
+                ]
+            }
+        ];
+
+        // State Management
+        let userState = {};
+        let currentFilter = 'all';
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            loadState();
+            renderChecklist();
+            updateProgress();
+            lucide.createIcons();
+        });
+
+        // Load State from LocalStorage
+        function loadState() {
+            const saved = localStorage.getItem('bigdata_pipeline_checklist');
+            if (saved) {
+                try {
+                    userState = JSON.parse(saved);
+                } catch (e) {
+                    userState = {};
+                }
+            }
+        }
+
+        // Save State to LocalStorage
+        function saveState() {
+            localStorage.setItem('bigdata_pipeline_checklist', JSON.stringify(userState));
+        }
+
+        // Toggle Task Completion
+        function toggleTask(taskId) {
+            userState[taskId] = !userState[taskId];
+            saveState();
+            updateProgress();
+            
+            // UI Toggle feedback
+            const card = document.getElementById(`card-${taskId}`);
+            const checkbox = document.getElementById(`chk-${taskId}`);
+            
+            if (card) {
+                if (userState[taskId]) {
+                    card.classList.add('bg-slate-50/80', 'border-slate-200');
+                    card.classList.remove('bg-white', 'border-slate-200/80');
+                } else {
+                    card.classList.remove('bg-slate-50/80');
+                    card.classList.add('bg-white');
+                }
+            }
+            
+            // Re-apply current filter if active
+            if (currentFilter !== 'all') {
+                applyFilterUI();
+            }
+        }
+
+        // Calculate and Update Progress Indicators
+        function updateProgress() {
+            let totalTasks = 0;
+            let completedTasks = 0;
+
+            phasesData.forEach(phase => {
+                let phaseTotal = phase.items.length;
+                let phaseCompleted = 0;
+
+                phase.items.forEach(item => {
+                    totalTasks++;
+                    if (userState[item.id]) {
+                        completedTasks++;
+                        phaseCompleted++;
+                    }
+                });
+
+                // Update Phase Progress UI
+                const phaseBar = document.getElementById(`phase-progress-${phase.id}`);
+                const phaseBadge = document.getElementById(`phase-count-${phase.id}`);
+                if (phaseBar && phaseBadge) {
+                    const phasePercent = Math.round((phaseCompleted / phaseTotal) * 100);
+                    phaseBar.style.width = `${phasePercent}%`;
+                    phaseBadge.textContent = `${phaseCompleted}/${phaseTotal}`;
+                }
+            });
+
+            // Global Calculations
+            const globalPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+            
+            document.getElementById('completed-count').textContent = completedTasks;
+            document.getElementById('total-count').textContent = `/ ${totalTasks}`;
+            document.getElementById('progress-percent').textContent = `${globalPercent}%`;
+            document.getElementById('main-progress-bar').style.width = `${globalPercent}%`;
+        }
+
+        // Render Phases and Tasks
+        function renderChecklist() {
+            const container = document.getElementById('phases-container');
+            container.innerHTML = '';
+
+            phasesData.forEach((phase, index) => {
+                const phaseEl = document.createElement('div');
+                phaseEl.className = 'phase-block bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden print-card';
+                phaseEl.id = `phase-block-${phase.id}`;
+
+                let tasksHTML = '';
+                phase.items.forEach(item => {
+                    const isChecked = !!userState[item.id];
+                    tasksHTML += `
+                        <div id="card-${item.id}" class="task-item p-4 rounded-xl border ${isChecked ? 'bg-slate-50/80 border-slate-200' : 'bg-white border-slate-200/80'} hover:border-slate-300 transition-all duration-150" data-completed="${isChecked}">
+                            <div class="flex items-start space-x-3.5">
+                                <div class="flex items-center h-6 mt-0.5">
+                                    <input 
+                                        type="checkbox" 
+                                        id="chk-${item.id}"
+                                        ${isChecked ? 'checked' : ''}
+                                        onchange="toggleTask('${item.id}')"
+                                        class="w-4 h-4 text-brand-600 bg-white border-slate-300 rounded focus:ring-brand-500 focus:ring-2 cursor-pointer"
+                                    >
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                        <label for="chk-${item.id}" class="font-semibold text-sm text-slate-900 cursor-pointer select-none">
+                                            ${item.title}
+                                        </label>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                                            ${item.framework}
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                                        ${item.description}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                phaseEl.innerHTML = `
+                    <div class="p-5 bg-slate-50/50 border-b border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div class="space-y-1">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-brand-600">${phase.badge}</span>
+                                <span class="text-slate-300">•</span>
+                                <span class="text-xs text-slate-500 font-medium">${phase.subtitle}</span>
+                            </div>
+                            <h3 class="text-base font-bold text-slate-900">${phase.title}</h3>
+                        </div>
+
+                        <div class="flex items-center space-x-3 min-w-[140px]">
+                            <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                                <div id="phase-progress-${phase.id}" class="bg-brand-600 h-2 rounded-full transition-all duration-300 w-0"></div>
+                            </div>
+                            <span id="phase-count-${phase.id}" class="text-xs font-semibold text-slate-600 min-w-[28px] text-right">0/0</span>
+                        </div>
+                    </div>
+
+                    <div class="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        ${tasksHTML}
+                    </div>
+                `;
+
+                container.appendChild(phaseEl);
+            });
+        }
+
+        // Filter Functionality
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('bg-brand-600', 'text-white');
+                btn.classList.add('text-slate-600', 'hover:text-slate-900', 'hover:bg-slate-100');
+            });
+
+            const activeBtn = document.getElementById(`filter-${filter}`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-brand-600', 'text-white');
+                activeBtn.classList.remove('text-slate-600', 'hover:text-slate-900', 'hover:bg-slate-100');
+            }
+
+            applyFilterUI();
+        }
+
+        function applyFilterUI() {
+            document.querySelectorAll('.task-item').forEach(item => {
+                const isCompleted = item.getAttribute('data-completed') === 'true';
+
+                if (currentFilter === 'all') {
+                    item.classList.remove('hidden');
+                } else if (currentFilter === 'completed') {
+                    if (isCompleted) item.classList.remove('hidden');
+                    else item.classList.add('hidden');
+                } else if (currentFilter === 'pending') {
+                    if (!isCompleted) item.classList.remove('hidden');
+                    else item.classList.add('hidden');
+                }
+            });
+        }
+
+        // Modal Controls
+        function resetProgress() {
+            const modal = document.getElementById('modal-container');
+            const modalBox = document.getElementById('modal-box');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalBox.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal-container');
+            const modalBox = document.getElementById('modal-box');
+            modal.classList.add('opacity-0');
+            modalBox.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        function confirmReset() {
+            userState = {};
+            saveState();
+            renderChecklist();
+            updateProgress();
+            closeModal();
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
